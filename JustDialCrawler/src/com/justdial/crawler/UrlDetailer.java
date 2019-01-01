@@ -15,7 +15,16 @@ public class UrlDetailer {
 	private String toPage;
 	private String status;
 	private String inputDate;
+	private String count;
 
+
+	public String getCount() {
+		return count;
+	}
+
+	public void setCount(String count) {
+		this.count = count;
+	}
 
 	public String getInputDate() {
 		return inputDate;

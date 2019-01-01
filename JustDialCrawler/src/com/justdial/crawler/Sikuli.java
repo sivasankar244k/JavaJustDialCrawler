@@ -28,25 +28,24 @@ public class Sikuli {
 		usefulIpList.add(5);
 		usefulIpList.add(6);
 		usefulIpList.add(20);
+		usefulIpList.add(23);
 		usefulIpList.add(24);
 		usefulIpList.add(26);
 		usefulIpList.add(28);
 		usefulIpList.add(32);
 		usefulIpList.add(37);
-		usefulIpList.add(45);
-		usefulIpList.add(48);
-		usefulIpList.add(50);
+		usefulIpList.add(46);
+		usefulIpList.add(49);
 		usefulIpList.add(51);
-		usefulIpList.add(60);
-		usefulIpList.add(62);
-		usefulIpList.add(76);
-		usefulIpList.add(79);
-		
-		usefulIpList.add(85);
-		usefulIpList.add(90);
-		usefulIpList.add(94);
-		usefulIpList.add(95);
-		usefulIpList.add(110);
+		usefulIpList.add(68);
+		usefulIpList.add(70);
+		usefulIpList.add(97);
+		usefulIpList.add(100);
+		usefulIpList.add(108);
+		usefulIpList.add(119);
+		usefulIpList.add(123);
+		usefulIpList.add(124);
+		usefulIpList.add(164);
 
 		
 
@@ -89,7 +88,7 @@ public class Sikuli {
 
 		// get back to first position then we can start after that
 
-		for (int i = 1; i <= 123; i++) {
+		for (int i = 1; i <= 164; i++) {
 			screen.type(Key.UP);
 			System.out.println("i is " + i);
 
@@ -98,7 +97,7 @@ public class Sikuli {
 		Thread.sleep(5000);
 
 		// going down to click on ip addres
-		for (int i = 1; i <= 123; i++) {
+		for (int i = 1; i <= 164; i++) {
 			
 			Thread.sleep(600);
 			screen.type(Key.DOWN);
@@ -106,6 +105,8 @@ public class Sikuli {
 			
 				if (usefulIpList.contains(i)) {
 
+					
+					System.out.println("i is " + i);
 					Thread.sleep(600);
 
 					screen.type(Key.ENTER);
@@ -119,13 +120,12 @@ public class Sikuli {
 								.userAgent(
 										"Mozimlla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2")
 								.get();
-						
-						
-						
+
 						return ;
 					
 						
 					}catch(Exception e) {
+						System.out.println("i is  have to expnad the tab " + i);
 						e.printStackTrace();
 						screen.click(patternMap.get("mainExpand").get(0));
 					}

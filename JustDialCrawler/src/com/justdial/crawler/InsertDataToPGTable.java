@@ -7,7 +7,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -23,7 +25,7 @@ public class InsertDataToPGTable {
 	 */
 	public  void insertData() throws IOException, SQLException {
 		
-		DatabaseConnection connection =new DatabaseConnection();
+		DatabaseConnection connection = DatabaseConnection.getInstance();;
 		Connection databaseConnection = connection.getDatabaseConnection();
 		File file=new File("C:\\Users\\Siva\\Desktop\\JustdialData\\");
 		if(file.isDirectory())
@@ -120,12 +122,12 @@ public class InsertDataToPGTable {
 		
 
 	}
-	public void executeQueries() throws SQLException
+	public void executeUpdateQueries() throws SQLException
 	{
 		
 		
 		
-		DatabaseConnection connection =new DatabaseConnection();
+		DatabaseConnection connection = DatabaseConnection.getInstance();
 		Connection databaseConnection = connection.getDatabaseConnection();
 		
 		String[] queries= {
@@ -958,5 +960,115 @@ public class InsertDataToPGTable {
 		}
 		
 	}
+	
+	
+	public List<List<Object>> executeSelectQueries() throws SQLException
 
+	{
+		
+		DatabaseConnection connection = DatabaseConnection.getInstance();;
+		Connection databaseConnection = connection.getDatabaseConnection();
+		
+		
+		List<List<Object>> arrayasList=new ArrayList<List<Object>>();
+		
+		Statement createStatement = databaseConnection.createStatement();
+		
+		String slectQuery="SELECT \"CITY\", count(*) FROM just_dial GROUP BY \"CITY\"";
+		ResultSet rs = createStatement.executeQuery(slectQuery);
+		
+		 while (rs.next()) {
+
+			 List<Object> innerList=new ArrayList<Object>();
+	            String city = rs.getString(1);
+	            
+	            if(city==null)
+	            {
+	            	city="UNKNNOWN";	
+	            }
+	            
+	            System.out.println(city);
+
+	            String  records = rs.getString(2);
+	            System.out.println(records);
+
+	            innerList.add(city);
+	            innerList.add(records);
+	            arrayasList.add(innerList);
+	        }
+		
+		return arrayasList;
+	}
+	
+	public void executeCityUpdateQueries() throws SQLException
+	{
+		
+		
+		
+		String[] queries= {
+				
+				"update just_dial set \"CITY\" = 'Ahmedabad' where \"ADDRESS\" like '%Ahmedabad%'",
+
+				"update just_dial set \"CITY\" = 'Goa' where \"ADDRESS\" like '%Goa%'",
+
+				"update just_dial set \"CITY\" = 'Banglore' where \"ADDRESS\" like '%Banglore%'",
+
+				"update just_dial set \"CITY\" = 'Indore' where \"ADDRESS\" like '%Indore%'",
+
+				"update just_dial set \"CITY\" = 'Hyderabad' where \"ADDRESS\" like '%Hyderabad%'",
+
+				"update just_dial set \"CITY\" = 'Vadodara' where \"ADDRESS\" like '%Vadodara%'",
+
+				"update just_dial set \"CITY\" = 'Jaipur' where \"ADDRESS\" like '%Jaipur%'",
+
+				"update just_dial set \"CITY\" = 'Chennai' where \"ADDRESS\" like '%Chennai%'",
+				
+				"update just_dial set \"CITY\" = 'Chennai' where \"ADDRESS\" like '%chennai%'",
+
+				"update just_dial set \"CITY\" = 'Mysore' where \"ADDRESS\" like '%Mysore%'",
+
+				"update just_dial set \"CITY\" = 'Nashik' where \"ADDRESS\" like '%Nashik%'",
+
+				"update just_dial set \"CITY\" = 'Pune' where \"ADDRESS\" like '%Pune%'",
+
+				"update just_dial set \"CITY\" = 'Surat' where \"ADDRESS\" like '%Surat%'",
+
+				"update just_dial set \"CITY\" = 'Nagpur' where \"ADDRESS\" like '%Nagpur%'",
+
+				"update just_dial set \"CITY\" = 'Bangalore' where \"ADDRESS\" like '%Bangalore%'",
+
+				"update just_dial set \"CITY\" = 'Coimbatore' where \"ADDRESS\" like '%Coimbatore%'",
+
+				"update just_dial set \"CITY\" = 'Chandigarh' where \"ADDRESS\" like '%Chandigarh%'",
+
+				"update just_dial set \"CITY\" = 'Ernakulam' where \"ADDRESS\" like '%Ernakulam%'",
+
+				"update just_dial set \"CITY\" = 'Kolkata' where \"ADDRESS\" like '%Kolkata%'",
+
+				"update just_dial set \"CITY\" = 'Delhi' where \"ADDRESS\" like '%Delhi%'",
+
+				"update just_dial set \"CITY\" = 'Mumbai' where \"ADDRESS\" like '%Mumbai%'"
+
+};
+		
+		DatabaseConnection connection = DatabaseConnection.getInstance();;
+		Connection databaseConnection = connection.getDatabaseConnection();
+		
+		
+		
+		
+		for(int i=0;i<queries.length;i++)
+		{
+			
+			System.out.println("execuint --"+queries[i]);
+			Statement createStatement = databaseConnection.createStatement();
+			 int executeUpdate = createStatement.executeUpdate(queries[i]);
+			 
+			 System.out.println(executeUpdate+"executeUpdate");
+			
+		}
+		
+		
+		
+	}
 }

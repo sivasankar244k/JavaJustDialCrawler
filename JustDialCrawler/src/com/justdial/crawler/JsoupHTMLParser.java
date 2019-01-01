@@ -12,6 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.security.GeneralSecurityException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -40,7 +41,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.sikuli.script.FindFailed;
-import org.sikuli.script.Screen;
+import org.sikuli.script.Region;
 import org.w3c.css.sac.InputSource;
 import org.w3c.dom.css.CSSRule;
 import org.w3c.dom.css.CSSRuleList;
@@ -48,259 +49,88 @@ import org.w3c.dom.css.CSSStyleDeclaration;
 import org.w3c.dom.css.CSSStyleRule;
 import org.w3c.dom.css.CSSStyleSheet;
 
+import com.justdial.crawler.data.SheetsQuickstart;
+import com.justdial.crawler.utility.Util;
 import com.steadystate.css.parser.CSSOMParser;
 
-public class JsoupHTMLParser {
+public class JsoupHTMLParser implements Phonenumbers {
 
-	static List<UrlDetailer> urlList ;
-	
-	
-	
-	
-	
-	static String CONFIG_FILE = "C:\\Users\\Siva\\JDC-1\\JustDialCrawler\\config.properties";
+	static List<UrlDetailer> urlList;
+
+	static String CONFIG_FILE = "C:\\Users\\Siva\\git\\JDCrawler\\JustDialCrawler\\config.properties";
 	static String SAMPLE_XLSX_FILE_PATH;
-	
-	static String  GOOGLE_SPREADSHET_URL_PATH;
 
-	public static void main(String args[]) throws SQLException,
-			InterruptedException, IOException, NumberFormatException, FindFailed {
-		
-		
-/*		 
-		
-		//2. we have to start our friends crawlers for crawling 
-	
-	for(int i=1;i<=10;i++)
-	{
-		
-		try {
-			
-			File dir = new File("C:\\Users\\Siva\\Desktop\\JARS\\crawler"+i);
+	static String GOOGLE_SPREADSHET_URL_PATH;
 
-	        ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/C", "Start","run.bat");
+	public static void main(String args[]) throws SQLException, InterruptedException, IOException,
+			NumberFormatException, FindFailed, GeneralSecurityException {
 
-	        pb.directory(dir);
+		/*
+		 * 
+		 * //2. we have to start our friends crawlers for crawling
+		 * 
+		 * for(int i=1;i<=10;i++) {
+		 * 
+		 * try {
+		 * 
+		 * File dir = new File("C:\\Users\\Siva\\Desktop\\JARS\\crawler"+i);
+		 * 
+		 * ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/C", "Start","run.bat");
+		 * 
+		 * pb.directory(dir);
+		 * 
+		 * Process p = pb.start();
+		 * 
+		 * 
+		 * 
+		 * String[] command = { "cmd.exe", "/C", "Start",
+		 * "C:\\Users\\Siva\\Desktop\\JARS\\crawler1\\run.bat" };
+		 * 
+		 * Process p = Runtime.getRuntime().exec(command);
+		 * 
+		 * } catch (IOException ex) { ex.printStackTrace(); }
+		 * 
+		 * }
+		 */
 
-	        Process p = pb.start();
-	        
-	        
+		do {
+			// get data from google spreaad sheett
 
-			String[] command = { "cmd.exe", "/C", "Start", "C:\\Users\\Siva\\Desktop\\JARS\\crawler1\\run.bat" };
+			String prjName = System.getProperty("user.dir")
+					.substring(System.getProperty("user.dir").lastIndexOf("\\") + 1);
+			FileInputStream input = null;
+			input = new FileInputStream(CONFIG_FILE);
 
-			Process p = Runtime.getRuntime().exec(command);
+			// load a properties file
+			Properties prop = new Properties();
+			prop.load(input);
 
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
-		
-	}*/
-		
-		
-		
+			SAMPLE_XLSX_FILE_PATH = prop.getProperty(prjName);
+			GOOGLE_SPREADSHET_URL_PATH = prop.getProperty("Google_Spread_Sheet_path");
 
+			// Creating a Workbook from an Excel file (.xls or .xlsx)
 
-do {
-//get data from google spreaad sheett
-		
+			Workbook workBook;
+			urlList = Util.readXLSInput(SAMPLE_XLSX_FILE_PATH);
 
-	
-		
-		
-		
+			try {
+				doExtract();
 
-		String prjName=System.getProperty("user.dir").substring(System.getProperty("user.dir").lastIndexOf("\\")+1);
-		FileInputStream input = null;
-		input = new FileInputStream(CONFIG_FILE);
-
-		// load a properties file
-		Properties prop = new Properties();
-		prop.load(input);
-		
-		SAMPLE_XLSX_FILE_PATH = prop.getProperty(prjName);
-		GOOGLE_SPREADSHET_URL_PATH=prop.getProperty("Google_Spread_Sheet_path");
-			
-		
-		
-		
-			
-		// Creating a Workbook from an Excel file (.xls or .xlsx)
-
-		Workbook workBook;
-		urlList=readXLSInput(SAMPLE_XLSX_FILE_PATH);
-
-		try {
-			doExtract();
-
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Change ip address and try again");
-		}
-	}while(true);
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.out.println("Change ip address and try again");
+			}
+		} while (true);
 	}
 
-	private static void getDatafromGoogleSpreadSheet() throws IOException {
-		try {
+	private static void doExtract() throws IOException, SQLException, InterruptedException, NumberFormatException,
+			FindFailed, GeneralSecurityException {
 
-			File excel = new File(SAMPLE_XLSX_FILE_PATH);
-
-			FileInputStream fis = new FileInputStream(excel);
-
-			HSSFWorkbook book = new HSSFWorkbook(fis);
-
-			HSSFSheet sheet = book.getSheetAt(0);
-
-			ArrayList<String> url = new ArrayList<String>();
-
-			Document document = Jsoup
-
-					.connect(
-
-							GOOGLE_SPREADSHET_URL_PATH)
-
-					.userAgent(
-
-							"Mozimlla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2")
-
-					.get();
-
-			// System.out.println(document);
-
-			Element table = document.select("table").get(0); // select the first
-
-			// table.
-
-			Elements rows = table.select("tr");
-
-			for (int k = 0; k <= sheet.getLastRowNum(); k++) {
-
-				String urlValue = sheet.getRow(k).getCell(0).getStringCellValue();
-
-				url.add(urlValue);
-
-			}
-
-			for (int i = 2; i < rows.size(); i++) { // first row is the col
-
-				// names so skip it.
-
-				Element row = rows.get(i);
-
-				Elements cols = row.select("td");
-
-				int lastRowNum = sheet.getLastRowNum();
-
-				if (!url.contains(cols.get(0).text())) {
-
-					System.out.println(cols.get(0).text() + "----------" + cols.get(1).text() + "-------------"
-
-							+ cols.get(2).text() + "-------------" + cols.get(3).text());
-
-					HSSFRow lastrow = sheet.createRow(lastRowNum + 1);
-
-					lastrow.createCell(0).setCellValue(cols.get(0).text());
-
-					lastrow.createCell(1).setCellValue(cols.get(1).text());
-
-					lastrow.createCell(2).setCellValue(cols.get(2).text());
-
-					lastrow.createCell(3).setCellValue(cols.get(3).text());
-
-				}
-
-			}
-
-			// open an OutputStream to save written data into Excel file
-
-			FileOutputStream os = new FileOutputStream(excel);
-
-			book.write(os);
-
-			
-
-			// Close workbook, OutputStream and Excel file to prevent leak
-
-			os.close();
-
-			fis.close();
-
-		} catch (FileNotFoundException fe) {
-
-			fe.printStackTrace();
-
-		} catch (IOException ie) {
-
-			ie.printStackTrace();
-
-		}
-
-	}
-
-	private static List<UrlDetailer> readXLSInput(String SAMPLE_XLSX_FILE_PATH) {
-		Workbook workBook;
-		urlList= new ArrayList<UrlDetailer>();
-		try {
-			
-			DataFormatter dataFormatter = new DataFormatter();
-			workBook = WorkbookFactory.create(new FileInputStream(
-					SAMPLE_XLSX_FILE_PATH));
-		
-
-			Sheet sheet = workBook.getSheetAt(0);
-
-			for (int rownum = 1; rownum < sheet.getPhysicalNumberOfRows(); rownum++) {
-
-				UrlDetailer urlDetailer = new UrlDetailer();
-
-				Row row = sheet.getRow(rownum);
-
-				urlDetailer.setBaseUrlString(dataFormatter.formatCellValue(row
-						.getCell(0)));
-				urlDetailer.setFromPageNum(dataFormatter.formatCellValue(row
-						.getCell(1)));
-				urlDetailer.setToPage(dataFormatter.formatCellValue(row
-						.getCell(2)));
-				urlDetailer.setStatus(dataFormatter.formatCellValue(row
-						.getCell(3)));
-
-				urlList.add(urlDetailer);
-
-			}
-			
-
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		return urlList;
-	}
-
-	private static void doExtract() throws IOException, SQLException,
-			InterruptedException, NumberFormatException, FindFailed {
-
-		boolean isIpchangeRequired;
-		DatabaseConnection databaseConnection = new DatabaseConnection();
+		DatabaseConnection databaseConnection = DatabaseConnection.getInstance();
 		Connection conn = databaseConnection.getDatabaseConnection();
-		TreeMap phonemunbers = new TreeMap();
+		TreeMap phonemunbers = Util.getPhoneNumberMap();
 
-		phonemunbers.put("9d001", "0");
-		phonemunbers.put("9d002", "1");
-		phonemunbers.put("9d003", "2");
-		phonemunbers.put("9d004", "3");
-		phonemunbers.put("9d005", "4");
-		phonemunbers.put("9d006", "5");
-		phonemunbers.put("9d007", "6");
-		phonemunbers.put("9d008", "7");
-		phonemunbers.put("9d009", "8");
-		phonemunbers.put("9d010", "9");
-		phonemunbers.put("9d011", "+");
-		phonemunbers.put("9d012", "-");
-		phonemunbers.put("9d013", ")");
-		phonemunbers.put("9d014", "(");
-
-		
 		continousCrawler(databaseConnection, conn, phonemunbers);
-		
 
 	}
 
@@ -312,34 +142,24 @@ do {
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws InterruptedException
-	 * @throws FindFailed 
-	 * @throws SQLException 
+	 * @throws FindFailed
+	 * @throws SQLException
+	 * @throws GeneralSecurityException
 	 */
-	private static void continousCrawler(DatabaseConnection databaseConnection,
-			Connection conn, TreeMap phonemunbers)
-			throws NumberFormatException, FileNotFoundException, IOException,
-			InterruptedException, FindFailed, SQLException {
+	private static void continousCrawler(DatabaseConnection databaseConnection, Connection conn, TreeMap phonemunbers)
+			throws NumberFormatException, FileNotFoundException, IOException, InterruptedException, FindFailed,
+			SQLException, GeneralSecurityException {
 		// Create a DataFormatter to format and get each cell's value as String
 
+		// continous update input sheet
+		Util.getDatafromGoogleSpreadSheet();
 
-		//continous update input sheet 
-		getDatafromGoogleSpreadSheet();
-		
-		
-		InsertdataBeforeFetching();
-		
-
-
-
-		
 		for (int numOffect = 0; numOffect < urlList.size(); numOffect++) {
 			Set<Company> setCompany = new HashSet<Company>();
 
-			
-			
-			
-			 urlList = readXLSInput(SAMPLE_XLSX_FILE_PATH);
+			urlList = Util.readXLSInput(SAMPLE_XLSX_FILE_PATH);
 			Properties prop = new Properties();
+
 			UrlDetailer urlDetailer = urlList.get(numOffect);
 
 			String baseURL = urlDetailer.getBaseUrlString().toString();
@@ -347,87 +167,96 @@ do {
 
 			int toPageNum = Integer.parseInt(urlDetailer.getToPage());
 
-			if(!urlDetailer.getStatus().equalsIgnoreCase("DONE"))
-			{
-			for (int pageno = fromPageNum; pageno < toPageNum; pageno++) {
+			if (!urlDetailer.getStatus().equalsIgnoreCase("DONE")) {
 
-				//placed the scrapping insdie the do while to keep cotinue scrapping;
-				
-			
-					System.out.println("in do while loop baseurl withpage "+baseURL+pageno);
-				doScrapping(databaseConnection, conn, phonemunbers, setCompany,
-						prop, baseURL, pageno);
-				if(pageno==(toPageNum-1))
-				{
-					updateXLSheet(baseURL,setCompany.size());
+				if (Util.isDBNotConnected()) {
+					System.out.println("entering into the data updation mode");
+					Region region = new Region(1260, 240, 80, 50);
+
+					region.click();
+					Thread.sleep(20000);
+					System.out.println("INSIDE THE CLICK");
+
+					InsertdataBeforeFetching();
 					
-					
+					region.click();
+					Thread.sleep(60000);
+
 				}
+				
+
+					for (int pageno = fromPageNum; pageno < toPageNum; pageno++) {
+
+						// placed the scrapping insdie the do while to keep cotinue scrapping;
+						
+						
+						
+
+						System.out.println("in do while loop baseurl withpage " + baseURL + pageno);
+						doScrapping(databaseConnection, conn, phonemunbers, setCompany, prop, baseURL, pageno);
+						if (pageno == (toPageNum - 1)) {
+							updateXLSheet(baseURL, setCompany.size());
+
+						}
+					}
+				
 			}
-		}
 
 			// here you have to send that to cvs file
 
 			ExportToXLS exportToXLS = new ExportToXLS();
 			try {
-				
-				if(setCompany.size()>0)
-				{
 
-				System.out
-						.println(setCompany.size() + "are wrinting into xls ");
+				if (setCompany.size() > 0) {
 
-				/*
-				 * TreeSet<Company> sortedCompanies = new TreeSet<Company>(new
-				 * CompanyRatingsComparator());
-				 * sortedCompanies.addAll(setCompany);
-				 */
-				exportToXLS.createXLS(setCompany);
+					System.out.println(setCompany.size() + "are wrinting into xls ");
+
+					/*
+					 * TreeSet<Company> sortedCompanies = new TreeSet<Company>(new
+					 * CompanyRatingsComparator()); sortedCompanies.addAll(setCompany);
+					 */
+					exportToXLS.createXLS(setCompany);
 				}
 
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				if(setCompany.size()>0)
-				{
-				exportToXLS.createXLS(setCompany);
+				if (setCompany.size() > 0) {
+					exportToXLS.createXLS(setCompany);
 				}
 				e.printStackTrace();
 			}
 		}
 	}
 
-	private static void InsertdataBeforeFetching() throws IOException, SQLException, FindFailed, InterruptedException {
-		
-		Screen offWindscribe=new Screen();
-		offWindscribe.click("C:\\Users\\Siva\\Documents\\Sikoli-images\\onButtonWindscribe.PNG");
+	private static void InsertdataBeforeFetching()
+			throws IOException, SQLException, FindFailed, InterruptedException, GeneralSecurityException {
 
-
-		Thread.sleep(60000);
-		
-		
-		String crawlerOutput = "C:\\Users\\Siva\\Desktop\\CrawlerOutput";	
+		String crawlerOutput = "C:\\Users\\Siva\\Desktop\\CrawlerOutput";
 		String justDialdata = "C:\\Users\\Siva\\Desktop\\JustdialData";
 
 		String justDialOldData = "C:\\Users\\Siva\\Desktop\\JustdialOldData";
-		
-		
+
 		File folder = new File(crawlerOutput);
 
 		File[] listOfFiles = folder.listFiles();
-		if(listOfFiles.length>0)
-		{
-		
-		moveFetecedData(justDialdata,justDialOldData);
-		moveFetecedData(crawlerOutput,justDialdata);
-		InsertDataToPGTable insertDataToPGTable=new InsertDataToPGTable();
-		insertDataToPGTable.insertData();
-		insertDataToPGTable.executeQueries();
-		
+		if (listOfFiles.length > 0) {
+
+			moveFetecedData(justDialdata, justDialOldData);
+			moveFetecedData(crawlerOutput, justDialdata);
+			InsertDataToPGTable insertDataToPGTable = new InsertDataToPGTable();
+			insertDataToPGTable.insertData();
+			insertDataToPGTable.executeCityUpdateQueries();
+			List<List<Object>> fectdData = insertDataToPGTable.executeSelectQueries();
+
+			// now we neeed to update the spread sheet
+
+			SheetsQuickstart quickstart = new SheetsQuickstart();
+			quickstart.updateGoogleSpreadSheet(fectdData);
 		}
-		
+
 	}
 
-	private static void moveFetecedData(String inputDirectory,String outputDirectory ) {
+	private static void moveFetecedData(String inputDirectory, String outputDirectory) {
 		try {
 
 			// STEP1 : we have to MOve justdial folder data to Justdial Old data
@@ -448,9 +277,9 @@ do {
 
 				if (listOfFiles[i].isFile()) {
 
-					source = inputDirectory + "//"+listOfFiles[i].getName();
+					source = inputDirectory + "//" + listOfFiles[i].getName();
 
-					destination = outputDirectory +"//"+ listOfFiles[i].getName();
+					destination = outputDirectory + "//" + listOfFiles[i].getName();
 
 					File afile = new File(source);
 
@@ -493,7 +322,7 @@ do {
 		}
 	}
 
-	private static void updateXLSheet(String url,int numRecords) {
+	private static void updateXLSheet(String url, int numRecords) {
 		// this is the righ time to update the xls sheet as DONE
 
 		try {
@@ -515,11 +344,11 @@ do {
 				Row row = itr.next();
 
 				if (row.getCell(0).getStringCellValue().equalsIgnoreCase(url)) {
-					
-					System.out.println("url IS GETTING UPDATED AS done "+url);
+
+					System.out.println("url IS GETTING UPDATED AS done " + url);
 					row.getCell(3).setCellValue("DONE");
-					//row.getCell(4).setCellValue(String.valueOf(numRecords));
-					
+					row.getCell(4).setCellValue(String.valueOf(numRecords));
+
 				}
 
 			}
@@ -557,11 +386,10 @@ do {
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws InterruptedException
-	 * @throws FindFailed 
+	 * @throws FindFailed
 	 */
-	private static void doScrapping(DatabaseConnection databaseConnection,
-			Connection conn, TreeMap phonemunbers, Set<Company> setCompany,
-			Properties prop, String baseURL, int pageno)
+	private static void doScrapping(DatabaseConnection databaseConnection, Connection conn, TreeMap phonemunbers,
+			Set<Company> setCompany, Properties prop, String baseURL, int pageno)
 			throws FileNotFoundException, IOException, InterruptedException, FindFailed {
 		try {
 
@@ -582,43 +410,34 @@ do {
 			 * 
 			 * System.out.println(baseURL + pageno);
 			 * System.setProperty("java.net.useSystemProxies", "true");
-			 * System.setProperty("https.proxyHost",
-			 * prop.getProperty("ipaddress"));
+			 * System.setProperty("https.proxyHost", prop.getProperty("ipaddress"));
 			 * System.out.println(System.getProperties());
-			 * System.setProperty("https.proxyPort",
-			 * prop.getProperty("portnum"));
+			 * System.setProperty("https.proxyPort", prop.getProperty("portnum"));
 			 */
 			// System.out.println("Ip addres "+System.getProperty("https.proxyHosst"));
 
 			try {
 
-				document = Jsoup
-						.connect(baseURL + pageno)
-						.userAgent(
-								"Mozimlla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2")
+				document = Jsoup.connect(baseURL + pageno).userAgent(
+						"Mozimlla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2")
 						.get();
 			} catch (Exception e) {
-				
-				
+
 				if (e instanceof UnknownHostException) {
-					System.err.println("internet connection is gone "
-							+ ((UnknownHostException) e).getMessage());
-					
+					System.err.println("internet connection is gone " + ((UnknownHostException) e).getMessage());
+
 					System.out.println("waiting for internet connection");
 
-					do{
-						
-						
-					}while(!netIsAvailable());
-					
+					do {
+
+					} while (!Util.netIsAvailable());
+
 					System.out.println("intert connection came");
 				}
-				
+
 				if (null == document) {
-					document = Jsoup
-							.connect(baseURL + pageno)
-							.userAgent(
-									"Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
+					document = Jsoup.connect(baseURL + pageno).userAgent(
+							"Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
 							.get();
 				}
 			}
@@ -630,102 +449,43 @@ do {
 				try {
 					Document innerDoc;
 					uri = link.attr("data-href").toString();
-					
-					System.out.println("uri-------"+uri);
-					innerDoc = Jsoup
-							.connect(uri.trim())
-							.userAgent(
-									"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2")
+
+					System.out.println("uri-------" + uri);
+					innerDoc = Jsoup.connect(uri.trim()).userAgent(
+							"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2")
 							.get();
 
 					// comp-contact
 
-					Elements innerlinks = innerDoc
-							.getElementsByClass("company-details");
+					Elements innerlinks = innerDoc.getElementsByClass("company-details");
 					Elements selectStles = innerDoc.select("style");
 
-					Map phSwapArray = getPhSwapArray(selectStles);
+					Map phSwapArray = Util.getPhSwapArray(selectStles);
 
 					for (Element innerLink : innerlinks) {
 
-						Company comp = new Company();
-
-						String companyName = innerLink
-								.getElementsByClass("fn").text();
-						String companyRatings = innerLink
-								.getElementsByClass("rating").text();
-						String companyVotes = innerLink
-								.getElementsByClass("votes").text();
-						String companyaddress = null;
-						StringBuilder companyPhonenumber = new StringBuilder();
-
-						// System.out.println(innerLink.getElementsByTag("Span"));
-
-						// company contact details
-
-						Elements companyContactLinks = innerDoc
-								.getElementsByClass("comp-contact");
-
-						for (Element companyConactLink : companyContactLinks) {
-
-							companyaddress = companyConactLink
-									.getElementsByClass("lng_add")
-									.text();
-
-							Elements phonenumberLinks = companyConactLink
-									.getElementsByClass("mobilesv")
-									.addClass("mobilesv");
-							int i = 1;
-							for (Element phonenumberLink : phonenumberLinks) {
-
-								if (i == 14) {
-									System.out.print(",");
-								}
-								companyPhonenumber
-										.append(phonemunbers.get(phSwapArray
-												.get(phonenumberLink
-														.toString()
-														.replace(
-																"<span class=\"mobilesv ",
-																"")
-														.replace(
-																"\"></span>",
-																""))));
-
-								i++;
-
+						Runnable t=new Runnable() {
+							
+							@Override
+							public void run() {
+								extractInnerLinks(conn, phonemunbers, setCompany, innerDoc, phSwapArray, innerLink);
+								
 							}
-
-						}
-
-						comp.setName(companyName);
-						comp.setNumvotes(companyVotes);
-						comp.setAddress(companyaddress);
-						comp.setPhonenum(companyPhonenumber.toString());
-						comp.setRatings(companyRatings);
-
-						// here it self insert into database
-
-						if (null != conn && null != comp) {
-							System.out.println(comp.toString());
-							databaseConnection.insertRecordIntoTable(
-									conn, comp);
-						}
-						System.out.println(comp.toString());
-						setCompany.add(comp);
+						};
+						new Thread(t).start();
+						
+						
 					}
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 					ExportToXLS exportToXLS = new ExportToXLS();
 
-					System.out.println(setCompany.size()
-							+ "are wrinting into xls ");
+					System.out.println(setCompany.size() + "are wrinting into xls ");
 
 					/*
-					 * TreeSet<Company> sortedCompanies = new
-					 * TreeSet<Company>(new CompanyRatingsComparator());
-					 * sortedCompanies.addAll(setCompany);
+					 * TreeSet<Company> sortedCompanies = new TreeSet<Company>(new
+					 * CompanyRatingsComparator()); sortedCompanies.addAll(setCompany);
 					 */
 					exportToXLS.createXLS(setCompany);
 					// waitForIpChnage(prop,uri.trim());
@@ -737,29 +497,23 @@ do {
 			// TODO Auto-generated catch block
 
 			if (e instanceof UnknownHostException) {
-				System.err.println("internet connection is gone "
-						+ ((UnknownHostException) e).getMessage());
+				System.err.println("internet connection is gone " + ((UnknownHostException) e).getMessage());
 
 				System.out.println("waiting for internet connection");
-				do{
-					
-				
-				}while(!netIsAvailable());
-				
+				do {
+
+				} while (!Util.netIsAvailable());
+
 				System.out.println("intert connection came");
 			}
 
 			if (e instanceof HttpStatusException) {
-				int statusCode = ((HttpStatusException) e)
-						.getStatusCode();
+				int statusCode = ((HttpStatusException) e).getStatusCode();
 
 				if (statusCode == 403) {
-					System.err.println(((HttpStatusException) e)
-							.getStatusCode()
-							+ "  "
-							+ ((HttpStatusException) e).getUrl());
-					waitForIpChnage(prop,
-							((HttpStatusException) e).getUrl());
+					System.err.println(
+							((HttpStatusException) e).getStatusCode() + "  " + ((HttpStatusException) e).getUrl());
+					Util.waitForIpChnage(prop, ((HttpStatusException) e).getUrl());
 				}
 
 			} else {
@@ -770,136 +524,57 @@ do {
 		}
 	}
 
-	private
-	static void waitForIpChnage(Properties prop, String url)
-			throws FileNotFoundException, IOException, InterruptedException, FindFailed {
-		
-		do {
-			
-			System.out.println("ip change required");
-			//here we have to work with Sikuli
-			Sikuli ipchanger=new Sikuli();
-		
-			ipchanger.doIPChnage(url);
-			
-		}while (isIPchanged(url));
-		
-		System.out.println("ip  has changed suceessfully");
-	}
+	private static void extractInnerLinks(Connection conn, TreeMap phonemunbers, Set<Company> setCompany,
+			Document innerDoc, Map phSwapArray, Element innerLink) {
+		Company comp = new Company();
 
-	private static Map getPhSwapArray(Elements selectStles) {
-		String styleString = selectStles.get(1).toString();
-		String repaledString = styleString.replace("\"", "");
-		String replaceHash = repaledString.replace("\\", "");
+		String companyName = innerLink.getElementsByClass("fn").text();
+		String companyRatings = innerLink.getElementsByClass("rating").text();
+		String companyVotes = innerLink.getElementsByClass("votes").text();
+		String companyaddress = null;
+		StringBuilder companyPhonenumber = new StringBuilder();
 
-		Map phoneMap = new HashMap();
-		InputSource styleTextStream = new InputSource(new StringReader(
-				replaceHash));
+		// System.out.println(innerLink.getElementsByTag("Span"));
 
-		CSSOMParser parser = new CSSOMParser();
+		// company contact details
 
-		// parse and create a stylesheet composition
+		Elements companyContactLinks = innerDoc.getElementsByClass("comp-contact");
 
-		CSSStyleSheet parsedStyleSheet = null;
-		try {
-			parsedStyleSheet = parser.parseStyleSheet(styleTextStream, null,
-					null);
-			CSSRuleList ruleList = parsedStyleSheet.getCssRules();
+		for (Element companyConactLink : companyContactLinks) {
 
-			for (int i = 0; i < ruleList.getLength(); i++) {
-				CSSRule rule = ruleList.item(i);
-				if (rule instanceof CSSStyleRule) {
-					CSSStyleRule styleRule = (CSSStyleRule) rule;
+			companyaddress = companyConactLink.getElementsByClass("lng_add").text();
 
-					CSSStyleDeclaration styleDeclaration = styleRule.getStyle();
+			Elements phonenumberLinks = companyConactLink.getElementsByClass("mobilesv")
+					.addClass("mobilesv");
+			int i = 1;
+			for (Element phonenumberLink : phonenumberLinks) {
 
-					for (int j = 0; j < styleDeclaration.getLength(); j++) {
-						String property = styleDeclaration.item(j);
-						if (property.equalsIgnoreCase("content")
-								&& styleDeclaration
-										.getPropertyCSSValue(property)
-										.getCssText().contains("9d0")) {
-							phoneMap.put(
-									styleRule.getSelectorText()
-											.replace(":before", "")
-											.replace(".", ""), styleDeclaration
-											.getPropertyCSSValue(property)
-											.getCssText().replace(",", ""));
-						}
+				if (i == 14) {
+					System.out.print(",");
+				}
+				companyPhonenumber.append(phonemunbers.get(phSwapArray.get(phonenumberLink.toString()
+						.replace("<span class=\"mobilesv ", "").replace("\"></span>", ""))));
 
-					}
+				i++;
 
-				} // end of StyleRule instance test
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			// e.printStackTrace();
-		}
-
-		// System.out.println(parsedStyleSheet);
-
-		return phoneMap;
-	}
-
-	private static boolean netIsAvailable() {
-
-		try {
-
-			final URL url = new URL("http://www.google.com");
-
-			final URLConnection conn = url.openConnection();
-
-			conn.connect();
-
-			conn.getInputStream().close();
-
-			return true;
-
-		} catch (MalformedURLException e) {
-
-			throw new RuntimeException(e);
-
-		} catch (IOException e) {
-
-			return false;
 
 		}
 
-	}
-	
-	private static boolean isIPchanged(String url) throws InterruptedException {
-/*
-		FileInputStream input = null;
-		input = new FileInputStream(CONFIG_FILE);
+		comp.setName(companyName);
+		comp.setNumvotes(companyVotes);
+		comp.setAddress(companyaddress);
+		comp.setPhonenum(companyPhonenumber.toString());
+		comp.setRatings(companyRatings);
 
-		// load a properties file
-		prop.load(input);*/
+		// here it self insert into database
 
-		long yourmilliseconds = System.currentTimeMillis();
-
-		SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
-
-		Date resultdate = new Date(yourmilliseconds);
-
-	
-
-		System.out.println("ip change required-------------"
-				+ sdf.format(resultdate) + "" + url);
-		Thread.sleep(10000);
-
-		try {
-			Document document = Jsoup
-					.connect(url)
-					.userAgent(
-							"Mozimlla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.120 Safari/535.2")
-					.get();
-			
-			return false;
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return true;
+		if (null != conn && null != comp) {
+			//System.out.println(comp.toString());
+			//databaseConnection.insertRecordIntoTable(conn, comp);
 		}
-
+		System.out.println(comp.toString());
+		setCompany.add(comp);
 	}
+
 }

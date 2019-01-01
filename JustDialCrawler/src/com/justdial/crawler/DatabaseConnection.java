@@ -9,6 +9,46 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 public class DatabaseConnection {
+	
+	
+	 
+	 
+	 
+	 
+	 
+	//Step 1  
+
+     // create a JDBCSingleton class.  
+
+    //static member holds only one instance of the JDBCSingleton class.  
+
+            
+
+        private static DatabaseConnection jdbc;  
+
+          
+
+    //JDBCSingleton prevents the instantiation from any other class.  
+
+      private DatabaseConnection() {  }  
+
+       
+
+   //Now we are providing gloabal point of access.  
+
+        public static DatabaseConnection getInstance() {    
+
+                                    if (jdbc==null)  
+
+                                  {  
+
+                                           jdbc=new  DatabaseConnection();  
+
+                                  }  
+
+                        return jdbc;  
+
+            }  
 
 	public Connection getDatabaseConnection() throws SQLException {
 
@@ -34,7 +74,7 @@ public class DatabaseConnection {
 		try {
 
 			connection = DriverManager.getConnection(
-					"jdbc:postgresql://127.0.0.1:5432/postgres", "postgres",
+					"jdbc:postgresql://localhost:5432/postgres", "postgres",
 					"TeamKuppala!544");
 
 		} catch (SQLException e) {
